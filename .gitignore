@@ -1,0 +1,5 @@
+env
+db.sqlite
+yolov8n.pt
+known_faces/
+media/
