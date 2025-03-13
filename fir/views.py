@@ -25,7 +25,6 @@ class FIRView(APIView):
         objects = detect_objects(image_path)
         people_identified = detect_faces(image_path)
 
-        print(people_identified,"_---------------------------------------------------------")
         fir_text = generate_fir(crime_scene, objects, people_identified, text)
 
         

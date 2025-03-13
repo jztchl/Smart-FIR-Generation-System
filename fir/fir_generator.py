@@ -1,73 +1,42 @@
-from flair.models import SequenceTagger
-from flair.data import Sentence
-from nltk.tokenize import sent_tokenize
-from collections import Counter
+import os
+from google import genai
+from google.genai import types
+from django.conf import settings
 
-ner_tagger = SequenceTagger.load('ner-fast')  
-pos_tagger = SequenceTagger.load('pos')       
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+def send_to_gemini(user_input):
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[user_input]
+        )
+        return response.text
+    except Exception as e:
+        return str(e)
 
 def generate_fir(crime_scene, objects, people, text):
-   
-    sentences = sent_tokenize(text)
-    
+    prompt = f"""
+    You are an expert crime analyst. Given the crime scene details, detected objects, and people involved, generate an FIR report with possible assumptions and suggested next steps.
 
-    flair_text = Sentence(text)
-    ner_tagger.predict(flair_text)
-    pos_tagger.predict(flair_text)
-    
-  
-    entities = {'PERSON': [], 'LOC': [], 'ORG': [], 'MISC': []}
-    for entity in flair_text.get_spans('ner'):
-        entities[entity.tag].append(entity.text)
-    
+    Crime Scene: {crime_scene}
+    Objects Found: {', '.join(objects)}
+    People Mentioned: {', '.join(people)}
+    Incident Description: {text}
 
-    nouns = [token.text for token in flair_text if token.tag in ('NN', 'NNS', 'NNP', 'NNPS')]
-    verbs = [token.text for token in flair_text if token.tag.startswith('VB')]
-    
-
-    input_objects_lower = [obj.lower() for obj in objects]
-    input_people_lower = [p.lower() for p in people]
-    key_nouns = [n for n in nouns if n.lower() not in input_objects_lower and n.lower() not in input_people_lower]
-    key_verbs = list(set(verbs))  
-    
-
-    if len(sentences) <= 5:
-        summary_sentences = sentences
-    else:
-        sentence_scores = {}
-        for sent in sentences:
-            sent_obj = Sentence(sent)
-            ner_tagger.predict(sent_obj)
-            entity_count = len(sent_obj.get_spans('ner'))
-            sentence_scores[sent] = entity_count + len(word_tokenize(sent)) / 100  #
-        summary_sentences = sorted(sentence_scores, key=sentence_scores.get, reverse=True)[:5]
-    detailed_summary = " ".join(summary_sentences)
-    
-
-    fir_report = f"""
-    First Information Report (FIR)
-    --------------------------------
-    Date: March 04, 2025
-    Location of Incident: {crime_scene}
-    Objects Involved: {', '.join(objects) if objects else 'None reported'}
-    People Involved: {', '.join(people) if people else 'None reported'}
-    Detailed Incident Summary: {detailed_summary}
-    Extracted Details:
-      - Persons Identified: {', '.join(entities['PERSON']) if entities['PERSON'] else 'None additional'}
-      - Locations Mentioned: {', '.join(entities['LOC']) if entities['LOC'] else 'None additional'}
-      - Organizations Noted: {', '.join(entities['ORG']) if entities['ORG'] else 'None noted'}
-      - Other Entities: {', '.join(entities['MISC']) if entities['MISC'] else 'None noted'}
-      - Significant Objects: {', '.join(Counter(key_nouns).most_common(5)[::-1]) if key_nouns else 'None beyond listed'}
-      - Key Actions: {', '.join(Counter(key_verbs).most_common(5)[::-1]) if key_verbs else 'None extracted'}
-    Additional Notes: Investigation ongoing. Awaiting forensic analysis and witness corroboration.
-    --------------------------------
+    Provide:
+    1. A structured **FIR Report**
+    2. **Logical Assumptions** based on the details.
+    3. **Next Steps for Investigation**
     """
-    return fir_report.strip()
 
+    response_text = send_to_gemini(prompt)
+    return response_text
 
+# Example Usage
 crime_scene = "Central Park"
 objects = ["knife", "bag"]
 people = ["John Doe", "Jane Smith"]
-text = "A robbery occurred at Central Park late at night. The suspect, John Doe, threatened Jane Smith with a knife. She dropped her bag and fled the scene. Witnesses reported hearing loud shouts around 11 PM. Police arrived shortly after but the suspect had already escaped. A nearby vendor saw a man running with a hood up. The Metro Police Department is coordinating efforts."
+text = "A robbery occurred at Central Park late at night. The suspect, John Doe, threatened Jane Smith with a knife..."
 
 print(generate_fir(crime_scene, objects, people, text))
