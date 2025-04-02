@@ -1,6 +1,9 @@
 env
 db.sqlite
 yolov8n.pt
-known_faces/
-media/
+known_faces/*
+media/*
+!media/.gitkeep
+!known_faces/.gitkeep
 .env
+__pycache__/

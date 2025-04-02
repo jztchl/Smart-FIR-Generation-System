@@ -15,7 +15,7 @@ def send_to_gemini(user_input):
     except Exception as e:
         return str(e)
 
-def generate_fir(crime_scene, objects, people, text):
+def generate_fir(crime_scene, objects, people, text, more_context):
     prompt = f"""
     You are an expert crime analyst. Given the crime scene details, detected objects, and people involved, generate an FIR report with possible assumptions and suggested next steps.
 
@@ -28,15 +28,13 @@ def generate_fir(crime_scene, objects, people, text):
     1. A structured **FIR Report**
     2. **Logical Assumptions** based on the details.
     3. **Next Steps for Investigation**
+
+
+    more context:{more_context}
+
+    note:
+    no need to mention anything else just straight report and no need to mention hypothetical
     """
 
     response_text = send_to_gemini(prompt)
     return response_text
-
-# Example Usage
-crime_scene = "Central Park"
-objects = ["knife", "bag"]
-people = ["John Doe", "Jane Smith"]
-text = "A robbery occurred at Central Park late at night. The suspect, John Doe, threatened Jane Smith with a knife..."
-
-print(generate_fir(crime_scene, objects, people, text))
