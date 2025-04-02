@@ -20,7 +20,7 @@ The **Smart FIR Generation System** is an AI-powered web service designed to str
 ## 🛠️ Setup & Installation
 ### **1️⃣ Clone the Repository**
 ```sh
-git clone https://github.com/your-username/Smart-FIR-Generation-System.git
+git clone https://github.com/jztchl/Smart-FIR-Generation-System.git
 cd Smart-FIR-Generation-System
 ```
 
