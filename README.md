@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="/logo.png" alt="Harmony Forge Logo" width="200">
+</p>
+
 # Smart FIR Generation System
 
 ## 🚀 Overview
